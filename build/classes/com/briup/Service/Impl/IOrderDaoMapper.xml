@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.briup.Dao.IOrderDaoMapper">
+	<resultMap type="Order" id="selectOrderModel">
+		<id column="orderid" property="orderid" />
+		<result column="name" property="name" />
+		<result column="finished" property="finished" />
+		<result column="cost" property="cost" />
+		<result column="cardno" property="cardno" />
+		<association property="user" javaType="com.briup.Bean.User">
+			<id column="userid" property="userid" />
+			<result column="password" property="password" />
+			<result column="country" property="country" />
+			<result column="province" property="province" />
+			<result column="city" property="city" />
+			<result column="street1" property="street1" />
+			<result column="street2" property="street2" />
+			<result column="zip" property="zip" />
+			<result column="homephone" property="homephone" />
+			<result column="officephone" property="officephone" />
+			<result column="cellphone" property="cellphone" />
+			<result column="email" property="email" />
+		</association>
+		<association property="status" javaType="com.briup.Bean.OrderStatus">
+			<id column="statusid" property="statusid" />
+			<result column="name" property="name" />
+			<result column="description" property="description" />
+		</association>
+		<association property="payway" javaType="com.briup.Bean.Payway">
+			<id column="paywayid" property="paywayid" />
+			<result column="paystyle" property="paystyle" />
+		</association>
+	</resultMap>
+
+	<resultMap type="Orderline" id="OrderlineModel">
+		<id column="lineid" property="orderid" />
+		<result column="amount" property="amount" />
+		<association property="product" javaType="com.briup.Bean.Product">
+			<id column="productid" property="productid" />
+			<result column="name" property="name" />
+			<result column="writer" property="writer" />
+			<result column="baseprice" property="baseprice" />
+			<result column="publish" property="publish" />
+			<result column="pages" property="pages" />
+			<result column="description" property="description" />
+			<result column="images" property="images" />
+			<association property="category" javaType="com.briup.Bean.Category">
+				<id column="categoryid" property="categoryid" />
+				<result column="name" property="name" />
+				<result column="description" property="description" />
+			</association>
+		</association>
+	</resultMap>
+
+	<select id="selectAllPayway" resultType="Payway">
+		select * from payway
+	</select>
+
+	<select id="selectOrderOfUser" parameterType="User" resultMap="selectOrderModel">
+		select * from orders o,orderstatus s,payway p,s_user u where
+		o.paywayid=p.paywayid and o.statusid=s.statusid and o.userid=u.userid
+		and o.userid=#{userid}
+	</select>
+
+	<delete id="removeOrderByOrderid" parameterType="Integer">
+		delete from
+		orders where orderid=#{orderid}
+	</delete>
+
+	<select id="selectOrderByOrderid" parameterType="Integer"
+		resultMap="selectOrderModel">
+		select * from orders o,orderstatus s,payway p,s_user u where
+		o.paywayid=p.paywayid and o.statusid=s.statusid and o.userid=u.userid
+		and o.orderid=#{orderid}
+	</select>
+
+	<select id="getOrderid" resultType="Integer">
+		select
+		o_order.nextval from dual
+	</select>
+
+	<!-- <insert id="insertOrder" parameterType="Order"> <selectKey keyProperty="orderid" 
+		resultType="Integer" order="BEFORE"> SELECT o_order.nextval from dual </selectKey> 
+		insert into orders values(#{orderid},#{name},#{finished},#{cost},#{cardno},#{user.userid},#{status.statusid},#{payway.paywayid}) 
+		</insert> <insert id="insertOrderline" parameterType="Orderline" > <selectKey 
+		keyProperty="orderid" resultType="Integer" order="BEFORE"> select o_orderline.nextval 
+		from dual </selectKey> insert into orderline values(#{orderid},#{order.orderid},#{product.productid},#{amount}) 
+		</insert> -->
+
+
+	<insert id="insertOrder" parameterType="Order">
+		insert into orders
+		values(#{orderid},#{name},#{finished},#{cost},#{cardno},#{user.userid},#{status.statusid},#{payway.paywayid})
+	</insert>
+
+	<insert id="insertOrderline" parameterType="Orderline"
+		useGeneratedKeys="true">
+		<selectKey keyProperty="orderid" resultType="Integer" order="BEFORE">
+			select o_orderline.nextval from dual
+		</selectKey>
+		insert into orderline
+		values(#{orderid},#{order.orderid},#{product.productid},#{amount})
+	</insert>
+
+	<select id="selectOrderlinesOfOrderid" parameterType="Integer"
+		resultMap="OrderlineModel">
+		select * from orderline o,product p where o.productid=p.productid and orderid=#{orderid}
+	</select>
+
+</mapper>
